@@ -31,11 +31,13 @@ func (m *Manager) GetAllBalances() []WalletBalanceEntry {
 	var wg sync.WaitGroup
 	wg.Add(len)
 
+	index := 0
+
 	for _, chain := range m.Config.Chains {
 		rpc := NewRPC(chain.LCDEndpoint, m.Logger)
 
 		for _, wallet := range chain.Wallets {
-			go func(wallet Wallet, chain Chain) {
+			go func(wallet Wallet, chain Chain, index int) {
 				defer wg.Done()
 
 				balanceToAdd := WalletBalanceEntry{
@@ -56,8 +58,12 @@ func (m *Manager) GetAllBalances() []WalletBalanceEntry {
 					balanceToAdd.Balances = balance.Balances
 				}
 
-				balances = append(balances, balanceToAdd)
-			}(wallet, chain)
+				balanceToAdd.Duration = time.Since(start)
+
+				balances[index] = balanceToAdd
+			}(wallet, chain, index)
+
+			index++
 		}
 	}
 
