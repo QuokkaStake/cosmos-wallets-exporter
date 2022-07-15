@@ -62,15 +62,24 @@ func Handler(w http.ResponseWriter, r *http.Request, manager *Manager, log *zero
 	balancesGauge := prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "cosmos_wallets_exporter_balance",
-			Help: "A wallet balance",
+			Help: "A wallet balance (in tokens)",
 		},
 		[]string{"chain", "address", "name", "group", "denom"},
+	)
+
+	usdBalancesGauge := prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "cosmos_wallets_exporter_balance_usd",
+			Help: "A wallet balance (in USD)",
+		},
+		[]string{"chain", "address", "name", "group"},
 	)
 
 	registry := prometheus.NewRegistry()
 	registry.MustRegister(successGauge)
 	registry.MustRegister(timingsGauge)
 	registry.MustRegister(balancesGauge)
+	registry.MustRegister(usdBalancesGauge)
 
 	balances := manager.GetAllBalances()
 	for _, balance := range balances {
@@ -90,6 +99,15 @@ func Handler(w http.ResponseWriter, r *http.Request, manager *Manager, log *zero
 
 		if !balance.Success {
 			continue
+		}
+
+		if balance.UsdPrice != 0 {
+			usdBalancesGauge.With(prometheus.Labels{
+				"chain":   balance.Chain,
+				"address": balance.Wallet.Address,
+				"name":    balance.Wallet.Name,
+				"group":   balance.Wallet.Group,
+			}).Set(balance.UsdPrice)
 		}
 
 		for _, singleBalance := range balance.Balances {

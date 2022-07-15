@@ -8,18 +8,23 @@ import (
 )
 
 type Manager struct {
-	Config Config
-	Logger zerolog.Logger
+	Config    Config
+	Coingecko *Coingecko
+	Logger    zerolog.Logger
 }
 
 func NewManager(config Config, logger *zerolog.Logger) *Manager {
 	return &Manager{
-		Config: config,
-		Logger: logger.With().Str("component", "manager").Logger(),
+		Config:    config,
+		Coingecko: NewCoingecko(logger),
+		Logger:    logger.With().Str("component", "manager").Logger(),
 	}
 }
 
 func (m *Manager) GetAllBalances() []WalletBalanceEntry {
+	currenciesList := m.Config.GetCoingeckoCurrencies()
+	currenciesRates := m.Coingecko.FetchPrices(currenciesList)
+
 	len := 0
 	for _, chain := range m.Config.Chains {
 		for _, _ = range chain.Wallets {
@@ -59,6 +64,7 @@ func (m *Manager) GetAllBalances() []WalletBalanceEntry {
 				} else {
 					balanceToAdd.Success = true
 					balanceToAdd.Balances = balance.Balances
+					balanceToAdd.UsdPrice = m.MaybeGetUsdPrice(chain, balance.Balances, currenciesRates)
 				}
 
 				balanceToAdd.Duration = time.Since(start)
@@ -73,4 +79,24 @@ func (m *Manager) GetAllBalances() []WalletBalanceEntry {
 	wg.Wait()
 
 	return balances
+}
+
+func (m *Manager) MaybeGetUsdPrice(
+	chain Chain,
+	balances Balances,
+	rates map[string]float64,
+) float64 {
+	price, hasPrice := rates[chain.CoingeckoCurrency]
+	if !hasPrice {
+		return 0
+	}
+
+	var usdPriceTotal float64 = 0
+	for _, balance := range balances {
+		if balance.Denom == chain.BaseDenom {
+			usdPriceTotal += StrToFloat64(balance.Amount) * price / float64(chain.DenomCoefficient)
+		}
+	}
+
+	return usdPriceTotal
 }

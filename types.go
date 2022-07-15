@@ -7,8 +7,10 @@ type Balance struct {
 	Amount string `json:"amount"`
 }
 
+type Balances []Balance
+
 type BalanceResponse struct {
-	Balances []Balance `json:"balances"`
+	Balances Balances `json:"balances"`
 }
 
 type WalletBalanceEntry struct {
@@ -16,5 +18,6 @@ type WalletBalanceEntry struct {
 	Success  bool
 	Duration time.Duration
 	Wallet   Wallet
-	Balances []Balance
+	Balances Balances
+	UsdPrice float64
 }

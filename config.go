@@ -15,9 +15,12 @@ type Wallet struct {
 }
 
 type Chain struct {
-	Name        string   `toml:"name"`
-	LCDEndpoint string   `toml:"lcd-endpoint"`
-	Wallets     []Wallet `toml:"wallets"`
+	Name              string   `toml:"name"`
+	LCDEndpoint       string   `toml:"lcd-endpoint"`
+	CoingeckoCurrency string   `toml:"coingecko-currency"`
+	BaseDenom         string   `toml:"base-denom"`
+	DenomCoefficient  int64    `toml:"denom-coefficient" default:"1000000"`
+	Wallets           []Wallet `toml:"wallets"`
 }
 
 func (w Wallet) Validate() error {
@@ -41,9 +44,9 @@ func (c *Chain) Validate() error {
 		return fmt.Errorf("no wallets provided")
 	}
 
-	for _, wallet := range c.Wallets {
+	for index, wallet := range c.Wallets {
 		if err := wallet.Validate(); err != nil {
-			return err
+			return fmt.Errorf("error in wallet %d: %s", index, err)
 		}
 	}
 
@@ -72,6 +75,18 @@ func (c *Config) Validate() error {
 	}
 
 	return nil
+}
+
+func (c *Config) GetCoingeckoCurrencies() []string {
+	currencies := []string{}
+
+	for _, chain := range c.Chains {
+		if chain.CoingeckoCurrency != "" {
+			currencies = append(currencies, chain.CoingeckoCurrency)
+		}
+	}
+
+	return currencies
 }
 
 func GetConfig(path string) (*Config, error) {
