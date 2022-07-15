@@ -30,7 +30,7 @@ func Execute(configPath string) {
 		Handler(w, r, manager, log)
 	})
 
-	err = http.ListenAndServe(":9600", nil)
+	err = http.ListenAndServe(":9500", nil)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not start application")
 	}
