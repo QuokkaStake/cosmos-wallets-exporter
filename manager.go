@@ -2,6 +2,7 @@ package main
 
 import (
 	"sync"
+	"time"
 
 	"github.com/rs/zerolog"
 )
@@ -39,6 +40,8 @@ func (m *Manager) GetAllBalances() []WalletBalanceEntry {
 		for _, wallet := range chain.Wallets {
 			go func(wallet Wallet, chain Chain, index int) {
 				defer wg.Done()
+
+				start := time.Now()
 
 				balanceToAdd := WalletBalanceEntry{
 					Chain:  chain.Name,

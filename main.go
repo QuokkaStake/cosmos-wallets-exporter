@@ -51,6 +51,14 @@ func Handler(w http.ResponseWriter, r *http.Request, manager *Manager, log *zero
 		[]string{"chain", "address", "name", "group"},
 	)
 
+	timingsGauge := prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "cosmos_wallets_exporter_timings",
+			Help: "External LCD query timing",
+		},
+		[]string{"chain", "address", "name", "group"},
+	)
+
 	balancesGauge := prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "cosmos_wallets_exporter_balance",
@@ -61,6 +69,7 @@ func Handler(w http.ResponseWriter, r *http.Request, manager *Manager, log *zero
 
 	registry := prometheus.NewRegistry()
 	registry.MustRegister(successGauge)
+	registry.MustRegister(timingsGauge)
 	registry.MustRegister(balancesGauge)
 
 	balances := manager.GetAllBalances()
@@ -71,6 +80,13 @@ func Handler(w http.ResponseWriter, r *http.Request, manager *Manager, log *zero
 			"name":    balance.Wallet.Name,
 			"group":   balance.Wallet.Group,
 		}).Set(BoolToFloat64(balance.Success))
+
+		timingsGauge.With(prometheus.Labels{
+			"chain":   balance.Chain,
+			"address": balance.Wallet.Address,
+			"name":    balance.Wallet.Name,
+			"group":   balance.Wallet.Group,
+		}).Set(balance.Duration.Seconds())
 
 		if !balance.Success {
 			continue
