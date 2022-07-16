@@ -11,8 +11,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const PaginationLimit = 1000
-
 func Execute(configPath string) {
 	config, err := GetConfig(configPath)
 	if err != nil {

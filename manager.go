@@ -25,17 +25,17 @@ func (m *Manager) GetAllBalances() []WalletBalanceEntry {
 	currenciesList := m.Config.GetCoingeckoCurrencies()
 	currenciesRates := m.Coingecko.FetchPrices(currenciesList)
 
-	len := 0
+	length := 0
 	for _, chain := range m.Config.Chains {
-		for _, _ = range chain.Wallets {
-			len++
+		for range chain.Wallets {
+			length++
 		}
 	}
 
-	balances := make([]WalletBalanceEntry, len)
+	balances := make([]WalletBalanceEntry, length)
 
 	var wg sync.WaitGroup
-	wg.Add(len)
+	wg.Add(length)
 
 	index := 0
 
