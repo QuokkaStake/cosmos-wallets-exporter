@@ -54,8 +54,9 @@ func (c *Chain) Validate() error {
 }
 
 type Config struct {
-	LogConfig LogConfig `toml:"log"`
-	Chains    []Chain   `toml:"chains"`
+	LogConfig     LogConfig `toml:"log"`
+	ListenAddress string    `toml:"listen-address" default:":9550"`
+	Chains        []Chain   `toml:"chains"`
 }
 
 type LogConfig struct {

@@ -30,7 +30,8 @@ func Execute(configPath string) {
 		Handler(w, r, manager, log)
 	})
 
-	err = http.ListenAndServe(":9550", nil)
+	log.Info().Str("addr", config.ListenAddress).Msg("Listening")
+	err = http.ListenAndServe(config.ListenAddress, nil)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not start application")
 	}
