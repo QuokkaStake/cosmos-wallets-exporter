@@ -23,6 +23,8 @@ coingecko-currency = "bitsong"
 # The chain's base denom. Only balances with this denom will be used
 # to calculate wallet's USD price.
 base-denom = "ubtsg"
+# The chain's display denom.
+denom = "btsg"
 # The coefficient you need to multiply base denom to to get 1 token on Coingecko.
 # Example: on Cosmos network the base denom is uatom, 1 atom = 1_000_000 uatom
 # and 1 atom on Coingecko = $10, and your wallet has 10 atom, or 10_000_000 uatom.

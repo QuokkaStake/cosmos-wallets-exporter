@@ -18,6 +18,7 @@ type Chain struct {
 	Name              string   `toml:"name"`
 	LCDEndpoint       string   `toml:"lcd-endpoint"`
 	CoingeckoCurrency string   `toml:"coingecko-currency"`
+	Denom             string   `toml:"denom"`
 	BaseDenom         string   `toml:"base-denom"`
 	DenomCoefficient  int64    `toml:"denom-coefficient" default:"1000000"`
 	Wallets           []Wallet `toml:"wallets"`
