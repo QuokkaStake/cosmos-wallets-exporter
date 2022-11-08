@@ -74,11 +74,20 @@ func Handler(w http.ResponseWriter, r *http.Request, manager *Manager, log *zero
 		[]string{"chain", "address", "name", "group"},
 	)
 
+	denomCoefficientGauge := prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "cosmos_wallets_exporter_denom_coefficient",
+			Help: "Denom coefficient info",
+		},
+		[]string{"chain", "denom", "display_denom"},
+	)
+
 	registry := prometheus.NewRegistry()
 	registry.MustRegister(successGauge)
 	registry.MustRegister(timingsGauge)
 	registry.MustRegister(balancesGauge)
 	registry.MustRegister(usdBalancesGauge)
+	registry.MustRegister(denomCoefficientGauge)
 
 	balances := manager.GetAllBalances()
 	for _, balance := range balances {
@@ -118,6 +127,14 @@ func Handler(w http.ResponseWriter, r *http.Request, manager *Manager, log *zero
 				"denom":   singleBalance.Denom,
 			}).Set(StrToFloat64(singleBalance.Amount))
 		}
+	}
+
+	for _, chain := range manager.Config.Chains {
+		denomCoefficientGauge.With(prometheus.Labels{
+			"chain":         chain.Name,
+			"display_denom": chain.Denom,
+			"denom":         chain.BaseDenom,
+		}).Set(float64(chain.DenomCoefficient))
 	}
 
 	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
