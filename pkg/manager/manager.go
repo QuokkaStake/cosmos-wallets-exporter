@@ -1,27 +1,32 @@
-package main
+package manager
 
 import (
 	"sync"
 	"time"
 
 	"github.com/rs/zerolog"
+	"main/pkg/coingecko"
+	"main/pkg/config"
+	"main/pkg/tendermint"
+	"main/pkg/types"
+	"main/pkg/utils"
 )
 
 type Manager struct {
-	Config    Config
-	Coingecko *Coingecko
+	Config    *config.Config
+	Coingecko *coingecko.Coingecko
 	Logger    zerolog.Logger
 }
 
-func NewManager(config Config, logger *zerolog.Logger) *Manager {
+func NewManager(config *config.Config, logger *zerolog.Logger) *Manager {
 	return &Manager{
 		Config:    config,
-		Coingecko: NewCoingecko(logger),
+		Coingecko: coingecko.NewCoingecko(logger),
 		Logger:    logger.With().Str("component", "manager").Logger(),
 	}
 }
 
-func (m *Manager) GetAllBalances() []WalletBalanceEntry {
+func (m *Manager) GetAllBalances() []types.WalletBalanceEntry {
 	currenciesList := m.Config.GetCoingeckoCurrencies()
 	currenciesRates := m.Coingecko.FetchPrices(currenciesList)
 
@@ -32,7 +37,7 @@ func (m *Manager) GetAllBalances() []WalletBalanceEntry {
 		}
 	}
 
-	balances := make([]WalletBalanceEntry, length)
+	balances := make([]types.WalletBalanceEntry, length)
 
 	var wg sync.WaitGroup
 	wg.Add(length)
@@ -40,15 +45,15 @@ func (m *Manager) GetAllBalances() []WalletBalanceEntry {
 	index := 0
 
 	for _, chain := range m.Config.Chains {
-		rpc := NewRPC(chain.LCDEndpoint, m.Logger)
+		rpc := tendermint.NewRPC(chain.LCDEndpoint, m.Logger)
 
 		for _, wallet := range chain.Wallets {
-			go func(wallet Wallet, chain Chain, index int) {
+			go func(wallet config.Wallet, chain config.Chain, index int) {
 				defer wg.Done()
 
 				start := time.Now()
 
-				balanceToAdd := WalletBalanceEntry{
+				balanceToAdd := types.WalletBalanceEntry{
 					Chain:  chain.Name,
 					Wallet: wallet,
 				}
@@ -82,8 +87,8 @@ func (m *Manager) GetAllBalances() []WalletBalanceEntry {
 }
 
 func (m *Manager) MaybeGetUsdPrice(
-	chain Chain,
-	balances Balances,
+	chain config.Chain,
+	balances types.Balances,
 	rates map[string]float64,
 ) float64 {
 	price, hasPrice := rates[chain.CoingeckoCurrency]
@@ -94,7 +99,7 @@ func (m *Manager) MaybeGetUsdPrice(
 	var usdPriceTotal float64 = 0
 	for _, balance := range balances {
 		if balance.Denom == chain.BaseDenom {
-			usdPriceTotal += StrToFloat64(balance.Amount) * price / float64(chain.DenomCoefficient)
+			usdPriceTotal += utils.StrToFloat64(balance.Amount) * price / float64(chain.DenomCoefficient)
 		}
 	}
 

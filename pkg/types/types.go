@@ -1,6 +1,10 @@
-package main
+package types
 
-import "time"
+import (
+	"time"
+
+	"main/pkg/config"
+)
 
 type Balance struct {
 	Denom  string `json:"denom"`
@@ -17,7 +21,7 @@ type WalletBalanceEntry struct {
 	Chain    string
 	Success  bool
 	Duration time.Duration
-	Wallet   Wallet
+	Wallet   config.Wallet
 	Balances Balances
 	UsdPrice float64
 }

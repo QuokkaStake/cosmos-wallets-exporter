@@ -1,4 +1,4 @@
-package main
+package pkg
 
 import (
 	"net/http"
@@ -8,37 +8,54 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
-	"github.com/spf13/cobra"
+	"main/pkg/config"
+	"main/pkg/logger"
+	"main/pkg/manager"
+	"main/pkg/utils"
 )
 
-func Execute(configPath string) {
-	config, err := GetConfig(configPath)
+type App struct {
+	Config  *config.Config
+	Logger  *zerolog.Logger
+	Manager *manager.Manager
+}
+
+func NewApp(configPath string) *App {
+	appConfig, err := config.GetConfig(configPath)
 	if err != nil {
-		GetDefaultLogger().Fatal().Err(err).Msg("Could not load config")
+		logger.GetDefaultLogger().Fatal().Err(err).Msg("Could not load config")
 	}
 
-	if err = config.Validate(); err != nil {
-		GetDefaultLogger().Fatal().Err(err).Msg("Provided config is invalid!")
+	if err = appConfig.Validate(); err != nil {
+		logger.GetDefaultLogger().Fatal().Err(err).Msg("Provided config is invalid!")
 	}
 
-	log := GetLogger(config.LogConfig)
-	manager := NewManager(*config, log)
+	log := logger.GetLogger(appConfig.LogConfig)
+	manager := manager.NewManager(appConfig, log)
 
-	http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
-		Handler(w, r, manager, log)
-	})
-
-	log.Info().Str("addr", config.ListenAddress).Msg("Listening")
-	err = http.ListenAndServe(config.ListenAddress, nil)
-	if err != nil {
-		log.Fatal().Err(err).Msg("Could not start application")
+	return &App{
+		Config:  appConfig,
+		Logger:  log,
+		Manager: manager,
 	}
 }
 
-func Handler(w http.ResponseWriter, r *http.Request, manager *Manager, log *zerolog.Logger) {
+func (a *App) Start() {
+	http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
+		a.Handler(w, r)
+	})
+
+	a.Logger.Info().Str("addr", a.Config.ListenAddress).Msg("Listening")
+	err := http.ListenAndServe(a.Config.ListenAddress, nil)
+	if err != nil {
+		a.Logger.Fatal().Err(err).Msg("Could not start application")
+	}
+}
+
+func (a *App) Handler(w http.ResponseWriter, r *http.Request) {
 	requestStart := time.Now()
 
-	sublogger := log.With().
+	sublogger := a.Logger.With().
 		Str("request-id", uuid.New().String()).
 		Logger()
 
@@ -89,14 +106,14 @@ func Handler(w http.ResponseWriter, r *http.Request, manager *Manager, log *zero
 	registry.MustRegister(usdBalancesGauge)
 	registry.MustRegister(denomCoefficientGauge)
 
-	balances := manager.GetAllBalances()
+	balances := a.Manager.GetAllBalances()
 	for _, balance := range balances {
 		successGauge.With(prometheus.Labels{
 			"chain":   balance.Chain,
 			"address": balance.Wallet.Address,
 			"name":    balance.Wallet.Name,
 			"group":   balance.Wallet.Group,
-		}).Set(BoolToFloat64(balance.Success))
+		}).Set(utils.BoolToFloat64(balance.Success))
 
 		timingsGauge.With(prometheus.Labels{
 			"chain":   balance.Chain,
@@ -125,11 +142,11 @@ func Handler(w http.ResponseWriter, r *http.Request, manager *Manager, log *zero
 				"name":    balance.Wallet.Name,
 				"group":   balance.Wallet.Group,
 				"denom":   singleBalance.Denom,
-			}).Set(StrToFloat64(singleBalance.Amount))
+			}).Set(utils.StrToFloat64(singleBalance.Amount))
 		}
 	}
 
-	for _, chain := range manager.Config.Chains {
+	for _, chain := range a.Config.Chains {
 		denomCoefficientGauge.With(prometheus.Labels{
 			"chain":         chain.Name,
 			"display_denom": chain.Denom,
@@ -145,25 +162,4 @@ func Handler(w http.ResponseWriter, r *http.Request, manager *Manager, log *zero
 		Str("endpoint", "/metrics").
 		Float64("request-time", time.Since(requestStart).Seconds()).
 		Msg("Request processed")
-}
-
-func main() {
-	var ConfigPath string
-
-	rootCmd := &cobra.Command{
-		Use:  "cosmos-wallets-exporter",
-		Long: "Checks the specific wallets on different chains for proposal votes.",
-		Run: func(cmd *cobra.Command, args []string) {
-			Execute(ConfigPath)
-		},
-	}
-
-	rootCmd.PersistentFlags().StringVar(&ConfigPath, "config", "", "Config file path")
-	if err := rootCmd.MarkPersistentFlagRequired("config"); err != nil {
-		GetDefaultLogger().Fatal().Err(err).Msg("Could not set flag as required")
-	}
-
-	if err := rootCmd.Execute(); err != nil {
-		GetDefaultLogger().Fatal().Err(err).Msg("Could not start application")
-	}
 }

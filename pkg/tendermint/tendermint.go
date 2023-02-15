@@ -1,4 +1,4 @@
-package main
+package tendermint
 
 import (
 	"encoding/json"
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
+	"main/pkg/types"
 )
 
 type RPC struct {
@@ -21,14 +22,14 @@ func NewRPC(url string, logger zerolog.Logger) *RPC {
 	}
 }
 
-func (rpc *RPC) GetWalletBalances(address string) (*BalanceResponse, error) {
+func (rpc *RPC) GetWalletBalances(address string) (*types.BalanceResponse, error) {
 	url := fmt.Sprintf(
 		"%s/cosmos/bank/v1beta1/balances/%s",
 		rpc.URL,
 		address,
 	)
 
-	var response *BalanceResponse
+	var response *types.BalanceResponse
 	if err := rpc.Get(url, &response); err != nil {
 		return nil, err
 	}
@@ -44,6 +45,8 @@ func (rpc *RPC) Get(url string, target interface{}) error {
 	if err != nil {
 		return err
 	}
+
+	req.Header.Set("User-Agent", "cosmos-wallets-exporter")
 
 	rpc.Logger.Debug().Str("url", url).Msg("Doing a query...")
 
