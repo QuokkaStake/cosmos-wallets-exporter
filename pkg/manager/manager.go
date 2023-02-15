@@ -1,15 +1,15 @@
 package manager
 
 import (
-	"sync"
-	"time"
-
-	"github.com/rs/zerolog"
 	"main/pkg/coingecko"
 	"main/pkg/config"
 	"main/pkg/tendermint"
 	"main/pkg/types"
 	"main/pkg/utils"
+	"sync"
+	"time"
+
+	"github.com/rs/zerolog"
 )
 
 type Manager struct {

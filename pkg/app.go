@@ -1,6 +1,10 @@
 package pkg
 
 import (
+	"main/pkg/config"
+	"main/pkg/logger"
+	"main/pkg/manager"
+	"main/pkg/utils"
 	"net/http"
 	"time"
 
@@ -8,10 +12,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
-	"main/pkg/config"
-	"main/pkg/logger"
-	"main/pkg/manager"
-	"main/pkg/utils"
 )
 
 type App struct {

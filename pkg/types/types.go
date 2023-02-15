@@ -1,9 +1,8 @@
 package types
 
 import (
-	"time"
-
 	"main/pkg/config"
+	"time"
 )
 
 type Balance struct {

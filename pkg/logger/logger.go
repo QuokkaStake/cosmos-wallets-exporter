@@ -1,10 +1,10 @@
 package logger
 
 import (
+	"main/pkg/config"
 	"os"
 
 	"github.com/rs/zerolog"
-	"main/pkg/config"
 )
 
 func GetDefaultLogger() *zerolog.Logger {
