@@ -7,20 +7,20 @@ jobs:
       - uses: actions/checkout@master
       - uses: actions/setup-go@v2
         with:
-          go-version: '^1.18.0'
+          go-version: '1.18.2'
       - run: go version
       - run: go mod download
-      - run: go build
+      - run: go build cmd/cosmos-wallets-exporter.go
   go-vet:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
       - uses: actions/setup-go@v2
         with:
-          go-version: '^1.18.0'
+          go-version: '1.18.2'
       - run: go version
       - run: go mod download
-      - run: go vet
+      - run: go vet ./...
   golangci:
     name: lint
     runs-on: ubuntu-latest

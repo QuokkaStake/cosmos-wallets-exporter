@@ -14,33 +14,33 @@ linters-settings:
 linters:
   enable-all: true
   disable:
-    - prealloc
+    - funlen
+    - scopelint
+    - interfacer
+    - exhaustivestruct
+    - maligned
+    - golint
+    - nlreturn
+    - wrapcheck
+    - gomnd
+    - cyclop
+    - goerr113
+    - exhaustruct
+    - wsl
     - lll
     - dupl
-    - funlen
-    - wsl
-    - gomnd
-    - unparam
-    - goerr113
-    - nestif
-    - errcheck
-    - golint
-    - scopelint
-    - maligned
-    - interfacer
-    - wrapcheck
     - varnamelen
-    - tagliatelle
-    - exhaustivestruct
     - gomoddirectives
-    - ireturn
-    - nlreturn
-    - cyclop
-    - errorlint
-    - noctx
     - gocognit
-    - gochecknoglobals
+    - tagliatelle
+    - errorlint
+    - gofumpt
+    - noctx
     - gosec
-    - exportloopref
     - stylecheck
-    - exhaustruct
+    - gosimple
+    - ireturn
+    - nosnakecase
+    - ifshort
+    - gci
+    - musttag

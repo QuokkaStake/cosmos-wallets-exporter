@@ -1,3 +1,4 @@
 config.toml
 main
-idea/
+.idea/
+cosmos-wallets-exporter
