@@ -3,10 +3,11 @@ package tendermint
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/rs/zerolog"
 	"main/pkg/types"
 	"net/http"
 	"time"
+
+	"github.com/rs/zerolog"
 )
 
 type RPC struct {
