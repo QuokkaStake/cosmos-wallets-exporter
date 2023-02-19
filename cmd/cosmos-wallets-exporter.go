@@ -7,6 +7,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	version = "unknown"
+)
+
 func Execute(configPath string) {
 	app := pkg.NewApp(configPath)
 	app.Start()
@@ -16,8 +20,9 @@ func main() {
 	var ConfigPath string
 
 	rootCmd := &cobra.Command{
-		Use:  "cosmos-wallets-exporter",
-		Long: "A Prometheus exporter that returns wallets balances on cosmos-sdk chains.",
+		Use:     "cosmos-wallets-exporter",
+		Long:    "A Prometheus exporter that returns wallets balances on cosmos-sdk chains.",
+		Version: version,
 		Run: func(cmd *cobra.Command, args []string) {
 			Execute(ConfigPath)
 		},
