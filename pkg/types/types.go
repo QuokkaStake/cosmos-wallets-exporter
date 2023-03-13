@@ -3,6 +3,8 @@ package types
 import (
 	"main/pkg/config"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type Balance struct {
@@ -22,5 +24,15 @@ type WalletBalanceEntry struct {
 	Duration time.Duration
 	Wallet   config.Wallet
 	Balances Balances
-	UsdPrice float64
+}
+
+type QueryInfo struct {
+	Chain    string
+	Success  bool
+	URL      string
+	Duration time.Duration
+}
+
+type Querier interface {
+	GetMetrics() ([]prometheus.Collector, []QueryInfo)
 }

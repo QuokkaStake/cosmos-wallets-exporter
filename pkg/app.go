@@ -1,11 +1,13 @@
 package pkg
 
 import (
+	coingeckoPkg "main/pkg/coingecko"
 	"main/pkg/config"
 	"main/pkg/logger"
-	"main/pkg/manager"
-	"main/pkg/utils"
+	queriersPkg "main/pkg/queriers"
+	"main/pkg/types"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,9 +17,9 @@ import (
 )
 
 type App struct {
-	Config  *config.Config
-	Logger  *zerolog.Logger
-	Manager *manager.Manager
+	Config   *config.Config
+	Logger   *zerolog.Logger
+	Queriers []types.Querier
 }
 
 func NewApp(configPath string) *App {
@@ -31,12 +33,18 @@ func NewApp(configPath string) *App {
 	}
 
 	log := logger.GetLogger(appConfig.LogConfig)
-	manager := manager.NewManager(appConfig, log)
+	coingecko := coingeckoPkg.NewCoingecko(log)
+
+	queriers := []types.Querier{
+		queriersPkg.NewDenomCoefficientQuerier(appConfig),
+		queriersPkg.NewPriceQuerier(appConfig, coingecko),
+		queriersPkg.NewBalanceQuerier(appConfig, log),
+	}
 
 	return &App{
-		Config:  appConfig,
-		Logger:  log,
-		Manager: manager,
+		Config:   appConfig,
+		Logger:   log,
+		Queriers: queriers,
 	}
 }
 
@@ -59,100 +67,32 @@ func (a *App) Handler(w http.ResponseWriter, r *http.Request) {
 		Str("request-id", uuid.New().String()).
 		Logger()
 
-	successGauge := prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Name: "cosmos_wallets_exporter_success",
-			Help: "Whether a scrape was successful",
-		},
-		[]string{"chain", "address", "name", "group"},
-	)
-
-	timingsGauge := prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Name: "cosmos_wallets_exporter_timings",
-			Help: "External LCD query timing",
-		},
-		[]string{"chain", "address", "name", "group"},
-	)
-
-	balancesGauge := prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Name: "cosmos_wallets_exporter_balance",
-			Help: "A wallet balance (in tokens)",
-		},
-		[]string{"chain", "address", "name", "group", "denom"},
-	)
-
-	usdBalancesGauge := prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Name: "cosmos_wallets_exporter_balance_usd",
-			Help: "A wallet balance (in USD)",
-		},
-		[]string{"chain", "address", "name", "group"},
-	)
-
-	denomCoefficientGauge := prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Name: "cosmos_wallets_exporter_denom_coefficient",
-			Help: "Denom coefficient info",
-		},
-		[]string{"chain", "denom", "display_denom"},
-	)
-
 	registry := prometheus.NewRegistry()
-	registry.MustRegister(successGauge)
-	registry.MustRegister(timingsGauge)
-	registry.MustRegister(balancesGauge)
-	registry.MustRegister(usdBalancesGauge)
-	registry.MustRegister(denomCoefficientGauge)
 
-	balances := a.Manager.GetAllBalances()
-	for _, balance := range balances {
-		successGauge.With(prometheus.Labels{
-			"chain":   balance.Chain,
-			"address": balance.Wallet.Address,
-			"name":    balance.Wallet.Name,
-			"group":   balance.Wallet.Group,
-		}).Set(utils.BoolToFloat64(balance.Success))
+	var wg sync.WaitGroup
+	var mutex sync.Mutex
 
-		timingsGauge.With(prometheus.Labels{
-			"chain":   balance.Chain,
-			"address": balance.Wallet.Address,
-			"name":    balance.Wallet.Name,
-			"group":   balance.Wallet.Group,
-		}).Set(balance.Duration.Seconds())
+	var queryInfos []types.QueryInfo
 
-		if !balance.Success {
-			continue
-		}
+	for _, querier := range a.Queriers {
+		wg.Add(1)
+		go func(querier types.Querier) {
+			mutex.Lock()
 
-		if balance.UsdPrice != 0 {
-			usdBalancesGauge.With(prometheus.Labels{
-				"chain":   balance.Chain,
-				"address": balance.Wallet.Address,
-				"name":    balance.Wallet.Name,
-				"group":   balance.Wallet.Group,
-			}).Set(balance.UsdPrice)
-		}
+			metrics, querierQueryInfos := querier.GetMetrics()
+			registry.MustRegister(metrics...)
+			queryInfos = append(queryInfos, querierQueryInfos...)
 
-		for _, singleBalance := range balance.Balances {
-			balancesGauge.With(prometheus.Labels{
-				"chain":   balance.Chain,
-				"address": balance.Wallet.Address,
-				"name":    balance.Wallet.Name,
-				"group":   balance.Wallet.Group,
-				"denom":   singleBalance.Denom,
-			}).Set(utils.StrToFloat64(singleBalance.Amount))
-		}
+			mutex.Unlock()
+			wg.Done()
+		}(querier)
 	}
 
-	for _, chain := range a.Config.Chains {
-		denomCoefficientGauge.With(prometheus.Labels{
-			"chain":         chain.Name,
-			"display_denom": chain.Denom,
-			"denom":         chain.BaseDenom,
-		}).Set(float64(chain.DenomCoefficient))
-	}
+	wg.Wait()
+
+	queriersQuerier := queriersPkg.NewQueriesQuerier(a.Config, queryInfos)
+	metrics, _ := queriersQuerier.GetMetrics()
+	registry.MustRegister(metrics...)
 
 	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 	h.ServeHTTP(w, r)
