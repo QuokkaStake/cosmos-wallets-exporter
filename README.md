@@ -8,7 +8,7 @@ cosmos-wallets-exporter is a Prometheus scraper that fetches the wallet balances
 
 ## What can I use it for?
 
-If you have a wallet that does transactions on an app's behalf without your interaction and will stop working correctly if it cannot broadcast transactions anymore due to zero balance and not enough tokens to pay for transaction fee (some examples: Axelar's broadcaster; Sentinel's dVPN node; ReStake's bot wallets), you can use this tool to scrape the balances to Prometheus and build alerts if a wallet balance falls under a specific threshold. 
+If you have a wallet that does transactions on an app's behalf without your interaction and will stop working correctly if it cannot broadcast transactions anymore due to zero balance and not enough tokens to pay for transaction fee (some examples: Axelar's broadcaster; Sentinel's dVPN node; ReStake's bot wallets; faucets), you can use this tool to scrape the balances to Prometheus and build alerts if a wallet balance falls under a specific threshold.
 
 ## How can I set it up?
 
@@ -94,11 +94,12 @@ scrape-configs:
 
 Then restart Prometheus and you're good to go!
 
-All of the metrics provided by cosmos-wallets-exporter have the `cosmos_wallets_exporter_` as a prefix, here's the list of the exposed metrics:
-- `cosmos_wallets_exporter_balance` - wallet balance in tokens
-- `cosmos_wallets_exporter_balance_usd` - wallet balance in USD (only native tokens are used for calculation, IBC tokens are not)
+All the metrics provided by cosmos-wallets-exporter have the `cosmos_wallets_exporter_` as a prefix, here's the list of the exposed metrics:
+- `cosmos_wallets_exporter_balance` - wallet balance in tokens.
 - `cosmos_wallets_exporter_denom_coefficient` - coefficient between 1 display token and 1 native token (like 1 atom = 1_000_000 atom). Defaults to 1000000.
-- `cosmos_wallets_exporter_success` - 1 if a wallet balance scrape was successful, 0 if no. You can also make alert to fire if it's above 0, to get notified on failed scrapes (for example, if a remote LCD endpoint is not accessible anymore). If the scrape failed, there won't be `cosmos_wallets_exporter_balance` or `cosmos_wallets_exporter_balance_usd` for it.
+- `cosmos_wallets_exporter_price` - a price of 1 token on chain.
+- `cosmos_wallets_exporter_success` - a count of successful queries for chain.
+- `cosmos_wallets_exporter_error` - a count of failed queries for chain. You may use it in alerting to get notified if some of your requests are failing because the node is down.
 - `cosmos_wallets_exporter_timings` - time it took to get a response from an LCD endpoint, in seconds.
 
 ## How can I configure it?
