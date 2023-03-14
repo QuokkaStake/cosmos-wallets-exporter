@@ -33,7 +33,7 @@ func NewApp(configPath string) *App {
 	}
 
 	log := logger.GetLogger(appConfig.LogConfig)
-	coingecko := coingeckoPkg.NewCoingecko(log)
+	coingecko := coingeckoPkg.NewCoingecko(appConfig, log)
 
 	queriers := []types.Querier{
 		queriersPkg.NewDenomCoefficientQuerier(appConfig),
