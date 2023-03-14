@@ -1,9 +1,10 @@
 package coingecko
 
 import (
+	"main/pkg/config"
+
 	"github.com/rs/zerolog"
 	gecko "github.com/superoo7/go-gecko/v3"
-	"main/pkg/config"
 )
 
 type Coingecko struct {
