@@ -91,6 +91,16 @@ func (c *Config) GetCoingeckoCurrencies() []string {
 	return currencies
 }
 
+func (c *Config) FindChainByCoingeckoCurrency(currency string) (*Chain, bool) {
+	for _, chain := range c.Chains {
+		if chain.CoingeckoCurrency == currency {
+			return &chain, true
+		}
+	}
+
+	return nil, false
+}
+
 func GetConfig(path string) (*Config, error) {
 	configBytes, err := os.ReadFile(path)
 	if err != nil {
