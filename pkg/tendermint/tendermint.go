@@ -2,10 +2,11 @@ package tendermint
 
 import (
 	"fmt"
-	"github.com/rs/zerolog"
 	"main/pkg/config"
 	"main/pkg/http"
 	"main/pkg/types"
+
+	"github.com/rs/zerolog"
 )
 
 type RPC struct {
