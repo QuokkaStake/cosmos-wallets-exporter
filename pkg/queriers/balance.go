@@ -16,7 +16,7 @@ type BalanceQuerier struct {
 	Logger zerolog.Logger
 }
 
-func NewBalanceQuerier(config *config.Config, logger *zerolog.Logger) *BalanceQuerier {
+func NewBalanceQuerier(config *config.Config, logger zerolog.Logger) *BalanceQuerier {
 	return &BalanceQuerier{
 		Config: config,
 		Logger: logger.With().Str("component", "balance_querier").Logger(),

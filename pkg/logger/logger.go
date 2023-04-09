@@ -12,7 +12,7 @@ func GetDefaultLogger() *zerolog.Logger {
 	return &log
 }
 
-func GetLogger(config config.LogConfig) *zerolog.Logger {
+func GetLogger(config config.LogConfig) zerolog.Logger {
 	log := zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout}).With().Timestamp().Logger()
 
 	if config.JSONOutput {
@@ -25,5 +25,5 @@ func GetLogger(config config.LogConfig) *zerolog.Logger {
 	}
 
 	zerolog.SetGlobalLevel(logLevel)
-	return &log
+	return log
 }
