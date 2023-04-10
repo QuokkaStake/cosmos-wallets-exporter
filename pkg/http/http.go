@@ -17,6 +17,7 @@ type Client struct {
 func NewClient(logger zerolog.Logger, chain string) *Client {
 	return &Client{
 		logger: logger.With().Str("component", "http").Logger(),
+		chain:  chain,
 	}
 }
 
