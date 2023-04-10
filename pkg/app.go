@@ -18,7 +18,7 @@ import (
 
 type App struct {
 	Config   *config.Config
-	Logger   *zerolog.Logger
+	Logger   zerolog.Logger
 	Queriers []types.Querier
 }
 

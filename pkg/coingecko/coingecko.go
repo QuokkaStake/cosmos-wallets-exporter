@@ -1,36 +1,45 @@
 package coingecko
 
 import (
+	"fmt"
 	"main/pkg/config"
+	"main/pkg/http"
+	"main/pkg/types"
+	"strings"
 
 	"github.com/rs/zerolog"
-	gecko "github.com/superoo7/go-gecko/v3"
 )
 
+type Response map[string]map[string]float64
+
 type Coingecko struct {
-	Client *gecko.Client
+	Client *http.Client
 	Config *config.Config
 	Logger zerolog.Logger
 }
 
-func NewCoingecko(appConfig *config.Config, logger *zerolog.Logger) *Coingecko {
+func NewCoingecko(appConfig *config.Config, logger zerolog.Logger) *Coingecko {
 	return &Coingecko{
 		Config: appConfig,
-		Client: gecko.NewClient(nil),
+		Client: http.NewClient(logger, "coingecko"),
 		Logger: logger.With().Str("component", "coingecko").Logger(),
 	}
 }
 
-func (c *Coingecko) FetchPrices(currencies []string) map[string]float64 {
-	result, err := c.Client.SimplePrice(currencies, []string{"USD"})
+func (c *Coingecko) FetchPrices(currencies []string) (map[string]float64, types.QueryInfo) {
+	ids := strings.Join(currencies, ",")
+	url := fmt.Sprintf("https://api.coingecko.com/api/v3/simple/price?ids=%s&vs_currencies=usd", ids)
+
+	var response Response
+	queryInfo, err := c.Client.Get(url, &response)
 	if err != nil {
 		c.Logger.Error().Err(err).Msg("Could not get rate")
-		return map[string]float64{}
+		return nil, queryInfo
 	}
 
 	prices := map[string]float64{}
 
-	for currencyKey, currencyValue := range *result {
+	for currencyKey, currencyValue := range response {
 		for _, baseCurrencyValue := range currencyValue {
 			chain, found := c.Config.FindChainByCoingeckoCurrency(currencyKey)
 			if !found {
@@ -38,10 +47,10 @@ func (c *Coingecko) FetchPrices(currencies []string) map[string]float64 {
 					Str("currency", currencyKey).
 					Msg("Could not find chain by coingecko currency, which should never happen.")
 			} else {
-				prices[chain.Name] = float64(baseCurrencyValue)
+				prices[chain.Name] = baseCurrencyValue
 			}
 		}
 	}
 
-	return prices
+	return prices, queryInfo
 }
