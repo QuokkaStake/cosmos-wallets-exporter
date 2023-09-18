@@ -40,15 +40,9 @@ func (c *Coingecko) FetchPrices(currencies []string) (map[string]float64, types.
 	prices := map[string]float64{}
 
 	for currencyKey, currencyValue := range response {
-		for _, baseCurrencyValue := range currencyValue {
-			chain, found := c.Config.FindChainByCoingeckoCurrency(currencyKey)
-			if !found {
-				c.Logger.Warn().
-					Str("currency", currencyKey).
-					Msg("Could not find chain by coingecko currency, which should never happen.")
-			} else {
-				prices[chain.Name] = baseCurrencyValue
-			}
+		usdPrice, ok := currencyValue["usd"]
+		if ok {
+			prices[currencyKey] = usdPrice
 		}
 	}
 

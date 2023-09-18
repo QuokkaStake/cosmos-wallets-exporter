@@ -96,7 +96,6 @@ Then restart Prometheus and you're good to go!
 
 All the metrics provided by cosmos-wallets-exporter have the `cosmos_wallets_exporter_` as a prefix, here's the list of the exposed metrics:
 - `cosmos_wallets_exporter_balance` - wallet balance in tokens.
-- `cosmos_wallets_exporter_denom_coefficient` - coefficient between 1 display token and 1 native token (like 1 atom = 1_000_000 atom). Defaults to 1000000.
 - `cosmos_wallets_exporter_price` - a price of 1 token on chain.
 - `cosmos_wallets_exporter_success` - a count of successful queries for chain.
 - `cosmos_wallets_exporter_error` - a count of failed queries for chain. You may use it in alerting to get notified if some of your requests are failing because the node is down.

@@ -28,16 +28,24 @@ func (q *PriceQuerier) GetMetrics() ([]prometheus.Collector, []types.QueryInfo) 
 			Name: "cosmos_wallets_exporter_price",
 			Help: "A price of 1 token",
 		},
-		[]string{"chain"},
+		[]string{"chain", "denom"},
 	)
 
 	currenciesList := q.Config.GetCoingeckoCurrencies()
 	currenciesRates, queryInfo := q.Coingecko.FetchPrices(currenciesList)
 
-	for chain, price := range currenciesRates {
-		priceGauge.With(prometheus.Labels{
-			"chain": chain,
-		}).Set(price)
+	for currency, price := range currenciesRates {
+		chainName, denom, found := q.Config.FindChainAndDenomByCoingeckoCurrency(currency)
+		if !found {
+			q.Logger.Warn().
+				Str("currency", currency).
+				Msg("Could not find chain by Coingecko currency")
+		} else {
+			priceGauge.With(prometheus.Labels{
+				"chain": chainName,
+				"denom": denom,
+			}).Set(price)
+		}
 	}
 
 	return []prometheus.Collector{priceGauge}, []types.QueryInfo{queryInfo}
