@@ -61,13 +61,22 @@ func (q *BalanceQuerier) GetMetrics() ([]prometheus.Collector, []types.QueryInfo
 				queryInfos = append(queryInfos, queryInfo)
 
 				for _, balance := range balancesResponse.Balances {
+					denom := balance.Denom
+					amount := utils.StrToFloat64(balance.Amount)
+
+					denomInfo, found := chain.FindDenomByName(balance.Denom)
+					if found {
+						denom = denomInfo.GetName()
+						amount /= float64(denomInfo.DenomCoefficient)
+					}
+
 					balancesGauge.With(prometheus.Labels{
 						"chain":   chain.Name,
 						"address": wallet.Address,
 						"name":    wallet.Name,
 						"group":   wallet.Group,
-						"denom":   balance.Denom,
-					}).Set(utils.StrToFloat64(balance.Amount))
+						"denom":   denom,
+					}).Set(amount)
 				}
 			}(wallet, chain)
 		}

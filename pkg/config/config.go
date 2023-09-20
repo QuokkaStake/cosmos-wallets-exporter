@@ -14,14 +14,26 @@ type Wallet struct {
 	Group   string `toml:"group"`
 }
 
+type DenomInfo struct {
+	Denom             string `toml:"denom"`
+	DisplayDenom      string `toml:"display-denom"`
+	DenomCoefficient  int64  `default:"1000000"         toml:"denom-coefficient"`
+	CoingeckoCurrency string `toml:"coingecko-currency"`
+}
+
+func (d DenomInfo) GetName() string {
+	if d.DisplayDenom != "" {
+		return d.DisplayDenom
+	}
+
+	return d.Denom
+}
+
 type Chain struct {
-	Name              string   `toml:"name"`
-	LCDEndpoint       string   `toml:"lcd-endpoint"`
-	CoingeckoCurrency string   `toml:"coingecko-currency"`
-	Denom             string   `toml:"denom"`
-	BaseDenom         string   `toml:"base-denom"`
-	DenomCoefficient  int64    `toml:"denom-coefficient" default:"1000000"`
-	Wallets           []Wallet `toml:"wallets"`
+	Name        string      `toml:"name"`
+	LCDEndpoint string      `toml:"lcd-endpoint"`
+	Denoms      []DenomInfo `toml:"denoms"`
+	Wallets     []Wallet    `toml:"wallets"`
 }
 
 func (w Wallet) Validate() error {
@@ -54,15 +66,25 @@ func (c *Chain) Validate() error {
 	return nil
 }
 
+func (c *Chain) FindDenomByName(denom string) (*DenomInfo, bool) {
+	for _, denomIterated := range c.Denoms {
+		if denomIterated.Denom == denom {
+			return &denomIterated, true
+		}
+	}
+
+	return nil, false
+}
+
 type Config struct {
 	LogConfig     LogConfig `toml:"log"`
-	ListenAddress string    `toml:"listen-address" default:":9550"`
+	ListenAddress string    `default:":9550" toml:"listen-address"`
 	Chains        []Chain   `toml:"chains"`
 }
 
 type LogConfig struct {
-	LogLevel   string `toml:"level" default:"info"`
-	JSONOutput bool   `toml:"json" default:"false"`
+	LogLevel   string `default:"info"  toml:"level"`
+	JSONOutput bool   `default:"false" toml:"json"`
 }
 
 func (c *Config) Validate() error {
@@ -83,22 +105,26 @@ func (c *Config) GetCoingeckoCurrencies() []string {
 	currencies := []string{}
 
 	for _, chain := range c.Chains {
-		if chain.CoingeckoCurrency != "" {
-			currencies = append(currencies, chain.CoingeckoCurrency)
+		for _, denom := range chain.Denoms {
+			if denom.CoingeckoCurrency != "" {
+				currencies = append(currencies, denom.CoingeckoCurrency)
+			}
 		}
 	}
 
 	return currencies
 }
 
-func (c *Config) FindChainByCoingeckoCurrency(currency string) (*Chain, bool) {
+func (c *Config) FindChainAndDenomByCoingeckoCurrency(currency string) (string, string, bool) {
 	for _, chain := range c.Chains {
-		if chain.CoingeckoCurrency == currency {
-			return &chain, true
+		for _, denom := range chain.Denoms {
+			if denom.CoingeckoCurrency == currency {
+				return chain.Name, denom.GetName(), true
+			}
 		}
 	}
 
-	return nil, false
+	return "", "", false
 }
 
 func GetConfig(path string) (*Config, error) {

@@ -19,61 +19,54 @@ name = "bitsong"
 lcd-endpoint = "https://lcd-bitsong-app.cosmostation.io"
 # Coingecko currency, specify it if you want to also get the wallet balance
 # in total in USD.
-coingecko-currency = "bitsong"
-# The chain's base denom. Only balances with this denom will be used
-# to calculate wallet's USD price.
-base-denom = "ubtsg"
-# The chain's display denom.
-denom = "btsg"
-# The coefficient you need to multiply base denom to to get 1 token on Coingecko.
-# Example: on Cosmos network the base denom is uatom, 1 atom = 1_000_000 uatom
-# and 1 atom on Coingecko = $10, and your wallet has 10 atom, or 10_000_000 uatom.
-# Then you need to specify the following parameters:
-# coingecko-currency = "cosmos-hub"
-# base-denom = "uatom"
-# denom-coefficient = 1000000
-# and after that, the /metrics endpoint will return your total balance as $100.
-# Defaults to 1000000
-denom-coefficient = 1000000
 
-# Per-wallet config. You can specify multiple config per each chain.
-[[chains.wallets]]
-# Wallet address.
-address = "bitsongxxxxxxxxx"
-# Each wallet has 3 labels: chain (taken from chain config), group and name.
-# Chain is, well, the chain name.
-# Group can be used to group wallets depending on their type/purpose
-# (like "dvpn" for dVPN node/"restake" for ReStake bot wallets/etc.)
-# Name can be used to identify a single wallet.
-# This can be used conveniently for building alerts, for example, you can
-# build different alert to fire if, for example, some Cosmos wallets used for restake
-# have balance less than a specififed threshold.
-group = "validator"
-# A wallet's unique name, also returned in metric labels.
-name = "bitsong-validator"
+# Denoms info. There can be multiple denoms.
+denoms = [
+    # Each denom has the following params: denom, display-denom, coingecko-currency, denom-coefficient.
+    # 1) denom - the base denom (like uatom for Cosmos Hub)
+    # 2) display - denom - the denom name to display it (like atom for Cosmos Hub)
+    # 3) coingecko-currency - a Coinecko API codename for a currency
+    # 4) denom-coefficient - the coefficient you need to multiply base denom to to get 1 token on Coingecko.
+    # Example: on Cosmos network the base denom is uatom, 1 atom = 1_000_000 uatom
+    # and 1 atom on Coingecko = $10, and your wallet has 10 atom, or 10_000_000 uatom.
+    # Then you need to specify the following parameters:
+    # coingecko-currency = "cosmos-hub"
+    # base-denom = "uatom"
+    # denom-coefficient = 1000000
+    # and after that, the /metrics endpoint will return your total balance as $100.
+    # Defaults to 1000000
+    { denom = "ubtsg", display-denom = "btsg", coingecko-currency = "bitsong", denom-coefficient = 1000000 }
+]
 
-
-# You can have multiple wallets per each chain...
-[[chains.wallets]]
-address = "bitsongyyyyyyyyyyy"
-group = "restake"
-name = "bitsong-restake"
-
+# Per-wallet config. You can specify multiple wallet configs per each chain.
+wallets = [
+    # Wallet address.
+    # Each wallet has 3 labels: chain (taken from chain config), group and name.
+    # 1) Chain is, well, the chain name.
+    # 2) Group can be used to group wallets depending on their type/purpose
+    # (like "dvpn" for dVPN node/"restake" for ReStake bot wallets/etc.)
+    # Name can be used to identify a single wallet.
+    # This can be used conveniently for building alerts, for example, you can
+    # build different alert to fire if, for example, some Cosmos wallets used for restake
+    # have balance less than a specififed threshold.
+    # 3) A wallet's unique name, also returned in metric labels.
+    { address = "bitsongxxxxxxxxx", group = "validator", name = "bitsong-validator" },
+    # You can have multiple wallets per each chain...
+    { address = "bitsongyyyyyyyyyyy", group = "restake", name = "bitsong-restake" }
+]
 
 # ... as well as multiple chains ...
 [[chains]]
 name = "sentinel"
 lcd-endpoint = "https://lcd-sentinel-app.cosmostation.io"
 coingecko-currency = "sentinel"
-base-denom = "udvpn"
+denoms = [
+    { denom = "udvpn", display-denom = "dvpn", coingecko-currency = "sentinel" }
+]
 
 # ... each having multiple wallets.
-[[chains.wallets]]
-address = "sentxxxxx"
-group = "validator"
-name = "sentinel-validator"
+wallets = [
+    { address = "sentxxxxx", group = "validator", name = "sentinel-validator" },
+    { address = "sentyyyyyy", group = "restake", name = "sentinel-restake" }
+]
 
-[[chains.wallets]]
-address = "sentyyyyyy"
-group = "restake"
-name = "sentinel-restake"
