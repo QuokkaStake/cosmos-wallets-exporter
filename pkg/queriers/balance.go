@@ -67,7 +67,7 @@ func (q *BalanceQuerier) GetMetrics() ([]prometheus.Collector, []types.QueryInfo
 					denomInfo, found := chain.FindDenomByName(balance.Denom)
 					if found {
 						denom = denomInfo.GetName()
-						amount = amount / float64(denomInfo.DenomCoefficient)
+						amount /= float64(denomInfo.DenomCoefficient)
 					}
 
 					balancesGauge.With(prometheus.Labels{

@@ -17,7 +17,7 @@ type Wallet struct {
 type DenomInfo struct {
 	Denom             string `toml:"denom"`
 	DisplayDenom      string `toml:"display-denom"`
-	DenomCoefficient  int64  `toml:"denom-coefficient" default:"1000000"`
+	DenomCoefficient  int64  `default:"1000000"         toml:"denom-coefficient"`
 	CoingeckoCurrency string `toml:"coingecko-currency"`
 }
 
@@ -78,13 +78,13 @@ func (c *Chain) FindDenomByName(denom string) (*DenomInfo, bool) {
 
 type Config struct {
 	LogConfig     LogConfig `toml:"log"`
-	ListenAddress string    `toml:"listen-address" default:":9550"`
+	ListenAddress string    `default:":9550" toml:"listen-address"`
 	Chains        []Chain   `toml:"chains"`
 }
 
 type LogConfig struct {
-	LogLevel   string `toml:"level" default:"info"`
-	JSONOutput bool   `toml:"json" default:"false"`
+	LogLevel   string `default:"info"  toml:"level"`
+	JSONOutput bool   `default:"false" toml:"json"`
 }
 
 func (c *Config) Validate() error {

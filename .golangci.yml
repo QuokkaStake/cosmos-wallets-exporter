@@ -44,3 +44,7 @@ linters:
     - ifshort
     - gci
     - musttag
+    - depguard
+    - varcheck
+    - structcheck
+    - deadcode
