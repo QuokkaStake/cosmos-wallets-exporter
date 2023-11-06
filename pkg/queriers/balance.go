@@ -46,6 +46,12 @@ func (q *BalanceQuerier) GetMetrics() ([]prometheus.Collector, []types.QueryInfo
 				defer wg.Done()
 
 				balancesResponse, queryInfo, err := rpc.GetWalletBalances(wallet.Address)
+
+				mutex.Lock()
+				defer mutex.Unlock()
+
+				queryInfos = append(queryInfos, queryInfo)
+
 				if err != nil {
 					q.Logger.Error().
 						Err(err).
@@ -54,11 +60,6 @@ func (q *BalanceQuerier) GetMetrics() ([]prometheus.Collector, []types.QueryInfo
 						Msg("Error querying balance")
 					return
 				}
-
-				mutex.Lock()
-				defer mutex.Unlock()
-
-				queryInfos = append(queryInfos, queryInfo)
 
 				for _, balance := range balancesResponse.Balances {
 					denom := balance.Denom
