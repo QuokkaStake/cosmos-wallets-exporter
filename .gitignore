@@ -3,3 +3,4 @@ main
 .idea/
 cosmos-wallets-exporter
 dist/
+**/.DS_Store

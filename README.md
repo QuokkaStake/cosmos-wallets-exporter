@@ -2,7 +2,6 @@
 
 ![Latest release](https://img.shields.io/github/v/release/QuokkaStake/cosmos-wallets-exporter)
 [![Actions Status](https://github.com/QuokkaStake/cosmos-wallets-exporter/workflows/test/badge.svg)](https://github.com/QuokkaStake/cosmos-wallets-exporter/actions)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FQuokkaStake%2Fcosmos-wallets-exporter.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FQuokkaStake%2Fcosmos-wallets-exporter?ref=badge_shield)
 
 cosmos-wallets-exporter is a Prometheus scraper that fetches the wallet balances from an LCD server exposed by a fullnode.
 
@@ -108,7 +107,3 @@ All configuration is done via the .toml config file, which is passed to the appl
 ## How can I contribute?
 
 Bug reports and feature requests are always welcome! If you want to contribute, feel free to open issues or PRs.
-
-
-## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FQuokkaStake%2Fcosmos-wallets-exporter.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FQuokkaStake%2Fcosmos-wallets-exporter?ref=badge_large)
