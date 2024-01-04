@@ -38,6 +38,7 @@ func NewApp(configPath string) *App {
 	queriers := []types.Querier{
 		queriersPkg.NewPriceQuerier(appConfig, coingecko),
 		queriersPkg.NewBalanceQuerier(appConfig, log),
+		queriersPkg.NewUptimeQuerier(),
 	}
 
 	return &App{
