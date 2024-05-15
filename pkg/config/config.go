@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -38,7 +39,7 @@ type Chain struct {
 
 func (w Wallet) Validate() error {
 	if w.Address == "" {
-		return fmt.Errorf("address for wallet is not specified")
+		return errors.New("address for wallet is not specified")
 	}
 
 	return nil
@@ -46,15 +47,15 @@ func (w Wallet) Validate() error {
 
 func (c *Chain) Validate() error {
 	if c.Name == "" {
-		return fmt.Errorf("empty chain name")
+		return errors.New("empty chain name")
 	}
 
 	if c.LCDEndpoint == "" {
-		return fmt.Errorf("no LCD endpoint provided")
+		return errors.New("no LCD endpoint provided")
 	}
 
 	if len(c.Wallets) == 0 {
-		return fmt.Errorf("no wallets provided")
+		return errors.New("no wallets provided")
 	}
 
 	for index, wallet := range c.Wallets {
@@ -89,7 +90,7 @@ type LogConfig struct {
 
 func (c *Config) Validate() error {
 	if len(c.Chains) == 0 {
-		return fmt.Errorf("no chains provided")
+		return errors.New("no chains provided")
 	}
 
 	for index, chain := range c.Chains {
