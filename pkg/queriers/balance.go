@@ -14,12 +14,20 @@ import (
 type BalanceQuerier struct {
 	Config *config.Config
 	Logger zerolog.Logger
+	RPCs   []*tendermint.RPC
 }
 
 func NewBalanceQuerier(config *config.Config, logger zerolog.Logger) *BalanceQuerier {
+	rpcs := make([]*tendermint.RPC, len(config.Chains))
+
+	for index, chain := range config.Chains {
+		rpcs[index] = tendermint.NewRPC(chain, logger)
+	}
+
 	return &BalanceQuerier{
 		Config: config,
 		Logger: logger.With().Str("component", "balance_querier").Logger(),
+		RPCs:   rpcs,
 	}
 }
 
@@ -37,12 +45,12 @@ func (q *BalanceQuerier) GetMetrics() ([]prometheus.Collector, []types.QueryInfo
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 
-	for _, chain := range q.Config.Chains {
-		rpc := tendermint.NewRPC(chain, q.Logger)
+	for index, chain := range q.Config.Chains {
+		rpc := q.RPCs[index]
 
 		for _, wallet := range chain.Wallets {
 			wg.Add(1)
-			go func(wallet config.Wallet, chain config.Chain) {
+			go func(wallet config.Wallet, chain config.Chain, rpc *tendermint.RPC) {
 				defer wg.Done()
 
 				balancesResponse, queryInfo, err := rpc.GetWalletBalances(wallet.Address)
@@ -79,7 +87,7 @@ func (q *BalanceQuerier) GetMetrics() ([]prometheus.Collector, []types.QueryInfo
 						"denom":   denom,
 					}).Set(amount)
 				}
-			}(wallet, chain)
+			}(wallet, chain, rpc)
 		}
 	}
 

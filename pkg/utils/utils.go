@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"main/pkg/constants"
+	"net/http"
 	"strconv"
 )
 
@@ -19,4 +21,18 @@ func StrToFloat64(s string) float64 {
 	}
 
 	return f
+}
+
+func GetBlockHeightFromHeader(header http.Header) (int64, error) {
+	valueStr := header.Get(constants.HeaderBlockHeight)
+	if valueStr == "" {
+		return 0, nil
+	}
+
+	value, err := strconv.ParseInt(valueStr, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return value, nil
 }
