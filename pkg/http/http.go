@@ -21,7 +21,11 @@ func NewClient(logger zerolog.Logger, chain string) *Client {
 	}
 }
 
-func (c *Client) Get(url string, target interface{}) (types.QueryInfo, error) {
+func (c *Client) Get(
+	url string,
+	target interface{},
+	predicate types.HTTPPredicate,
+) (types.QueryInfo, http.Header, error) {
 	client := &http.Client{Timeout: 10 * 1000000000}
 	start := time.Now()
 
@@ -33,7 +37,7 @@ func (c *Client) Get(url string, target interface{}) (types.QueryInfo, error) {
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return queryInfo, err
+		return queryInfo, nil, err
 	}
 
 	req.Header.Set("User-Agent", "cosmos-wallets-exporter")
@@ -44,14 +48,21 @@ func (c *Client) Get(url string, target interface{}) (types.QueryInfo, error) {
 	queryInfo.Duration = time.Since(start)
 	if err != nil {
 		c.logger.Warn().Str("url", url).Err(err).Msg("Query failed")
-		return queryInfo, err
+		return queryInfo, nil, err
 	}
 	defer res.Body.Close()
 
-	c.logger.Debug().Str("url", url).Dur("duration", time.Since(start)).Msg("Query is finished")
+	c.logger.Debug().
+		Str("url", url).
+		Dur("duration", time.Since(start)).
+		Msg("Query is finished")
+
+	if predicateErr := predicate(res); predicateErr != nil {
+		return queryInfo, res.Header, predicateErr
+	}
 
 	err = json.NewDecoder(res.Body).Decode(target)
 	queryInfo.Success = err == nil
 
-	return queryInfo, err
+	return queryInfo, res.Header, err
 }
