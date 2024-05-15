@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/guregu/null/v5"
+
 	"github.com/BurntSushi/toml"
 	"github.com/mcuadros/go-defaults"
 )
@@ -78,14 +80,23 @@ func (c *Chain) FindDenomByName(denom string) (*DenomInfo, bool) {
 }
 
 type Config struct {
-	LogConfig     LogConfig `toml:"log"`
-	ListenAddress string    `default:":9550" toml:"listen-address"`
-	Chains        []Chain   `toml:"chains"`
+	TracingConfig TracingConfig `toml:"tracing"`
+	LogConfig     LogConfig     `toml:"log"`
+	ListenAddress string        `default:":9550" toml:"listen-address"`
+	Chains        []Chain       `toml:"chains"`
 }
 
 type LogConfig struct {
 	LogLevel   string `default:"info"  toml:"level"`
 	JSONOutput bool   `default:"false" toml:"json"`
+}
+
+type TracingConfig struct {
+	Enabled                   null.Bool `default:"false"                     toml:"enabled"`
+	OpenTelemetryHTTPHost     string    `toml:"open-telemetry-http-host"`
+	OpenTelemetryHTTPInsecure null.Bool `default:"true"                      toml:"open-telemetry-http-insecure"`
+	OpenTelemetryHTTPUser     string    `toml:"open-telemetry-http-user"`
+	OpenTelemetryHTTPPassword string    `toml:"open-telemetry-http-password"`
 }
 
 func (c *Config) Validate() error {

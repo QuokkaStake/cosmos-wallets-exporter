@@ -1,28 +1,36 @@
 package pkg
 
 import (
+	"context"
 	coingeckoPkg "main/pkg/coingecko"
 	"main/pkg/config"
 	"main/pkg/logger"
 	queriersPkg "main/pkg/queriers"
+	"main/pkg/tracing"
 	"main/pkg/types"
 	"net/http"
 	"sync"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/attribute"
+
 	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type App struct {
 	Config   *config.Config
 	Logger   zerolog.Logger
 	Queriers []types.Querier
+
+	Tracer trace.Tracer
 }
 
-func NewApp(configPath string) *App {
+func NewApp(configPath string, version string) *App {
 	appConfig, err := config.GetConfig(configPath)
 	if err != nil {
 		logger.GetDefaultLogger().Fatal().Err(err).Msg("Could not load config")
@@ -32,26 +40,31 @@ func NewApp(configPath string) *App {
 		logger.GetDefaultLogger().Fatal().Err(err).Msg("Provided config is invalid!")
 	}
 
+	tracer, err := tracing.InitTracer(appConfig.TracingConfig, version)
+	if err != nil {
+		logger.GetDefaultLogger().Fatal().Err(err).Msg("Error setting up tracing")
+	}
+
 	log := logger.GetLogger(appConfig.LogConfig)
-	coingecko := coingeckoPkg.NewCoingecko(appConfig, log)
+	coingecko := coingeckoPkg.NewCoingecko(appConfig, log, tracer)
 
 	queriers := []types.Querier{
-		queriersPkg.NewPriceQuerier(appConfig, coingecko),
-		queriersPkg.NewBalanceQuerier(appConfig, log),
-		queriersPkg.NewUptimeQuerier(),
+		queriersPkg.NewPriceQuerier(appConfig, coingecko, tracer),
+		queriersPkg.NewBalanceQuerier(appConfig, log, tracer),
+		queriersPkg.NewUptimeQuerier(tracer),
 	}
 
 	return &App{
 		Config:   appConfig,
 		Logger:   log,
 		Queriers: queriers,
+		Tracer:   tracer,
 	}
 }
 
 func (a *App) Start() {
-	http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
-		a.Handler(w, r)
-	})
+	otelHandler := otelhttp.NewHandler(http.HandlerFunc(a.Handler), "prometheus")
+	http.Handle("/metrics", otelHandler)
 
 	a.Logger.Info().Str("addr", a.Config.ListenAddress).Msg("Listening")
 	err := http.ListenAndServe(a.Config.ListenAddress, nil)
@@ -62,10 +75,17 @@ func (a *App) Start() {
 
 func (a *App) Handler(w http.ResponseWriter, r *http.Request) {
 	requestStart := time.Now()
+	requestID := uuid.New().String()
 
 	sublogger := a.Logger.With().
-		Str("request-id", uuid.New().String()).
+		Str("request-id", requestID).
 		Logger()
+
+	span := trace.SpanFromContext(r.Context())
+	span.SetAttributes(attribute.String("request-id", requestID))
+	rootSpanCtx := r.Context()
+
+	defer span.End()
 
 	registry := prometheus.NewRegistry()
 
@@ -76,16 +96,15 @@ func (a *App) Handler(w http.ResponseWriter, r *http.Request) {
 
 	for _, querier := range a.Queriers {
 		wg.Add(1)
-		go func(querier types.Querier) {
-			mutex.Lock()
+		go func(querier types.Querier, ctx context.Context) {
+			metrics, querierQueryInfos := querier.GetMetrics(ctx)
 
-			metrics, querierQueryInfos := querier.GetMetrics()
+			mutex.Lock()
 			registry.MustRegister(metrics...)
 			queryInfos = append(queryInfos, querierQueryInfos...)
-
 			mutex.Unlock()
 			wg.Done()
-		}(querier)
+		}(querier, rootSpanCtx)
 	}
 
 	wg.Wait()
