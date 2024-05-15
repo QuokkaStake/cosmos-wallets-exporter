@@ -8,7 +8,7 @@ import (
 	"github.com/guregu/null/v5"
 
 	"github.com/BurntSushi/toml"
-	"github.com/mcuadros/go-defaults"
+	"github.com/creasty/defaults"
 )
 
 type Wallet struct {
@@ -152,6 +152,6 @@ func GetConfig(path string) (*Config, error) {
 		return nil, err
 	}
 
-	defaults.SetDefaults(&configStruct)
+	defaults.MustSet(&configStruct)
 	return &configStruct, nil
 }
