@@ -1,23 +1,28 @@
 package queriers
 
 import (
+	"context"
 	"main/pkg/types"
 	"time"
+
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
 
 type UptimeQuerier struct {
 	StartTime time.Time
+	Tracer    trace.Tracer
 }
 
-func NewUptimeQuerier() *UptimeQuerier {
+func NewUptimeQuerier(tracer trace.Tracer) *UptimeQuerier {
 	return &UptimeQuerier{
 		StartTime: time.Now(),
+		Tracer:    tracer,
 	}
 }
 
-func (u *UptimeQuerier) GetMetrics() ([]prometheus.Collector, []types.QueryInfo) {
+func (u *UptimeQuerier) GetMetrics(ctx context.Context) ([]prometheus.Collector, []types.QueryInfo) {
 	uptimeMetricsGauge := prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "cosmos_wallets_exporter_start_time",

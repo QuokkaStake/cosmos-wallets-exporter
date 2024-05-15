@@ -1,6 +1,7 @@
 package types
 
 import (
+	"context"
 	"main/pkg/config"
 	"time"
 
@@ -34,5 +35,5 @@ type QueryInfo struct {
 }
 
 type Querier interface {
-	GetMetrics() ([]prometheus.Collector, []QueryInfo)
+	GetMetrics(ctx context.Context) ([]prometheus.Collector, []QueryInfo)
 }
