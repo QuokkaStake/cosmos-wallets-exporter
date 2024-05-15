@@ -48,3 +48,4 @@ linters:
     - varcheck
     - structcheck
     - deadcode
+    - mnd
