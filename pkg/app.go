@@ -40,11 +40,7 @@ func NewApp(configPath string, version string) *App {
 		logger.GetDefaultLogger().Fatal().Err(err).Msg("Provided config is invalid!")
 	}
 
-	tracer, err := tracing.InitTracer(appConfig.TracingConfig, version)
-	if err != nil {
-		logger.GetDefaultLogger().Fatal().Err(err).Msg("Error setting up tracing")
-	}
-
+	tracer := tracing.InitTracer(appConfig.TracingConfig, version)
 	log := logger.GetLogger(appConfig.LogConfig)
 	coingecko := coingeckoPkg.NewCoingecko(appConfig, log, tracer)
 
