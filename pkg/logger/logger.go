@@ -12,6 +12,11 @@ func GetDefaultLogger() *zerolog.Logger {
 	return &log
 }
 
+func GetNopLogger() *zerolog.Logger {
+	log := zerolog.Nop()
+	return &log
+}
+
 func GetLogger(config config.LogConfig) zerolog.Logger {
 	log := zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout}).With().Timestamp().Logger()
 
@@ -21,7 +26,7 @@ func GetLogger(config config.LogConfig) zerolog.Logger {
 
 	logLevel, err := zerolog.ParseLevel(config.LogLevel)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Could not parse log level")
+		log.Panic().Err(err).Msg("Could not parse log level")
 	}
 
 	zerolog.SetGlobalLevel(logLevel)
