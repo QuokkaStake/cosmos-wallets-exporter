@@ -2,6 +2,7 @@
 
 ![Latest release](https://img.shields.io/github/v/release/QuokkaStake/cosmos-wallets-exporter)
 [![Actions Status](https://github.com/QuokkaStake/cosmos-wallets-exporter/workflows/test/badge.svg)](https://github.com/QuokkaStake/cosmos-wallets-exporter/actions)
+[![codecov](https://codecov.io/gh/QuokkaStake/cosmos-wallets-exporter/graph/badge.svg?token=PXF706HLZH)](https://codecov.io/gh/QuokkaStake/cosmos-wallets-exporter)
 
 cosmos-wallets-exporter is a Prometheus scraper that fetches the wallet balances from an LCD server exposed by a fullnode.
 
