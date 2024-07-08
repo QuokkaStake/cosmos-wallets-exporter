@@ -9,6 +9,7 @@ require (
 	github.com/creasty/defaults v1.7.0
 	github.com/google/uuid v1.6.0
 	github.com/guregu/null/v5 v5.0.0
+	github.com/jarcoal/httpmock v1.3.1
 	github.com/prometheus/client_golang v1.12.2
 	github.com/rs/zerolog v1.26.1
 	github.com/spf13/cobra v1.4.0
