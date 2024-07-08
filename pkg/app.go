@@ -33,11 +33,11 @@ type App struct {
 func NewApp(configPath string, version string) *App {
 	appConfig, err := config.GetConfig(configPath)
 	if err != nil {
-		logger.GetDefaultLogger().Fatal().Err(err).Msg("Could not load config")
+		logger.GetDefaultLogger().Panic().Err(err).Msg("Could not load config")
 	}
 
 	if err = appConfig.Validate(); err != nil {
-		logger.GetDefaultLogger().Fatal().Err(err).Msg("Provided config is invalid!")
+		logger.GetDefaultLogger().Panic().Err(err).Msg("Provided config is invalid!")
 	}
 
 	tracer := tracing.InitTracer(appConfig.TracingConfig, version)
@@ -65,7 +65,7 @@ func (a *App) Start() {
 	a.Logger.Info().Str("addr", a.Config.ListenAddress).Msg("Listening")
 	err := http.ListenAndServe(a.Config.ListenAddress, nil)
 	if err != nil {
-		a.Logger.Fatal().Err(err).Msg("Could not start application")
+		a.Logger.Panic().Err(err).Msg("Could not start application")
 	}
 }
 
