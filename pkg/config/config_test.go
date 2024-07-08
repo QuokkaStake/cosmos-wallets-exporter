@@ -55,31 +55,6 @@ func TestGetCoingeckoCurrencies(t *testing.T) {
 	assert.Equal(t, "cosmos", currencies[0])
 }
 
-func TestChainAndCurrencyByCoingeckoName(t *testing.T) {
-	t.Parallel()
-
-	chain := &Config{
-		Chains: []Chain{
-			{
-				Name: "chain",
-				Denoms: []DenomInfo{
-					{Denom: "uatom", DisplayDenom: "atom", CoingeckoCurrency: "cosmos"},
-				},
-			},
-		},
-	}
-
-	info1, chain1, found1 := chain.FindChainAndDenomByCoingeckoCurrency("cosmos")
-	require.NotNil(t, info1)
-	assert.Equal(t, "atom", chain1)
-	assert.True(t, found1)
-
-	info2, chain2, found2 := chain.FindChainAndDenomByCoingeckoCurrency("random")
-	require.Empty(t, info2)
-	assert.Empty(t, chain2)
-	assert.False(t, found2)
-}
-
 func TestLoadConfigFailedToLoad(t *testing.T) {
 	t.Parallel()
 

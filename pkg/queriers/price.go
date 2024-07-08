@@ -46,17 +46,18 @@ func (q *PriceQuerier) GetMetrics(ctx context.Context) ([]prometheus.Collector, 
 	currenciesList := q.Config.GetCoingeckoCurrencies()
 	currenciesRates, queryInfo := q.Coingecko.FetchPrices(currenciesList, childCtx)
 
-	for currency, price := range currenciesRates {
-		chainName, denom, found := q.Config.FindChainAndDenomByCoingeckoCurrency(currency)
-		if !found {
-			q.Logger.Warn().
-				Str("currency", currency).
-				Msg("Could not find chain by Coingecko currency")
-		} else {
-			priceGauge.With(prometheus.Labels{
-				"chain": chainName,
-				"denom": denom,
-			}).Set(price)
+	for _, chain := range q.Config.Chains {
+		for _, denom := range chain.Denoms {
+			if denom.CoingeckoCurrency == "" {
+				continue
+			}
+
+			if price, ok := currenciesRates[denom.CoingeckoCurrency]; ok {
+				priceGauge.With(prometheus.Labels{
+					"chain": chain.Name,
+					"denom": denom.GetName(),
+				}).Set(price)
+			}
 		}
 	}
 
