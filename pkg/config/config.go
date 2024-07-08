@@ -3,100 +3,17 @@ package config
 import (
 	"errors"
 	"fmt"
-	"os"
-
-	"github.com/guregu/null/v5"
+	"main/pkg/fs"
 
 	"github.com/BurntSushi/toml"
 	"github.com/creasty/defaults"
 )
-
-type Wallet struct {
-	Address string `toml:"address"`
-	Name    string `toml:"name"`
-	Group   string `toml:"group"`
-}
-
-type DenomInfo struct {
-	Denom             string `toml:"denom"`
-	DisplayDenom      string `toml:"display-denom"`
-	DenomCoefficient  int64  `default:"1000000"         toml:"denom-coefficient"`
-	CoingeckoCurrency string `toml:"coingecko-currency"`
-}
-
-func (d DenomInfo) GetName() string {
-	if d.DisplayDenom != "" {
-		return d.DisplayDenom
-	}
-
-	return d.Denom
-}
-
-type Chain struct {
-	Name        string      `toml:"name"`
-	LCDEndpoint string      `toml:"lcd-endpoint"`
-	Denoms      []DenomInfo `toml:"denoms"`
-	Wallets     []Wallet    `toml:"wallets"`
-}
-
-func (w Wallet) Validate() error {
-	if w.Address == "" {
-		return errors.New("address for wallet is not specified")
-	}
-
-	return nil
-}
-
-func (c *Chain) Validate() error {
-	if c.Name == "" {
-		return errors.New("empty chain name")
-	}
-
-	if c.LCDEndpoint == "" {
-		return errors.New("no LCD endpoint provided")
-	}
-
-	if len(c.Wallets) == 0 {
-		return errors.New("no wallets provided")
-	}
-
-	for index, wallet := range c.Wallets {
-		if err := wallet.Validate(); err != nil {
-			return fmt.Errorf("error in wallet %d: %s", index, err)
-		}
-	}
-
-	return nil
-}
-
-func (c *Chain) FindDenomByName(denom string) (*DenomInfo, bool) {
-	for _, denomIterated := range c.Denoms {
-		if denomIterated.Denom == denom {
-			return &denomIterated, true
-		}
-	}
-
-	return nil, false
-}
 
 type Config struct {
 	TracingConfig TracingConfig `toml:"tracing"`
 	LogConfig     LogConfig     `toml:"log"`
 	ListenAddress string        `default:":9550" toml:"listen-address"`
 	Chains        []Chain       `toml:"chains"`
-}
-
-type LogConfig struct {
-	LogLevel   string `default:"info"  toml:"level"`
-	JSONOutput bool   `default:"false" toml:"json"`
-}
-
-type TracingConfig struct {
-	Enabled                   null.Bool `default:"false"                     toml:"enabled"`
-	OpenTelemetryHTTPHost     string    `toml:"open-telemetry-http-host"`
-	OpenTelemetryHTTPInsecure null.Bool `default:"true"                      toml:"open-telemetry-http-insecure"`
-	OpenTelemetryHTTPUser     string    `toml:"open-telemetry-http-user"`
-	OpenTelemetryHTTPPassword string    `toml:"open-telemetry-http-password"`
 }
 
 func (c *Config) Validate() error {
@@ -139,8 +56,8 @@ func (c *Config) FindChainAndDenomByCoingeckoCurrency(currency string) (string, 
 	return "", "", false
 }
 
-func GetConfig(path string) (*Config, error) {
-	configBytes, err := os.ReadFile(path)
+func GetConfig(path string, filesystem fs.FS) (*Config, error) {
+	configBytes, err := filesystem.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	coingeckoPkg "main/pkg/coingecko"
 	"main/pkg/config"
+	"main/pkg/fs"
 	"main/pkg/logger"
 	queriersPkg "main/pkg/queriers"
 	"main/pkg/tracing"
@@ -30,8 +31,8 @@ type App struct {
 	Tracer trace.Tracer
 }
 
-func NewApp(configPath string, version string) *App {
-	appConfig, err := config.GetConfig(configPath)
+func NewApp(filesystem fs.FS, configPath string, version string) *App {
+	appConfig, err := config.GetConfig(configPath, filesystem)
 	if err != nil {
 		logger.GetDefaultLogger().Panic().Err(err).Msg("Could not load config")
 	}
