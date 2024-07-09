@@ -44,18 +44,6 @@ func (c *Config) GetCoingeckoCurrencies() []string {
 	return currencies
 }
 
-func (c *Config) FindChainAndDenomByCoingeckoCurrency(currency string) (string, string, bool) {
-	for _, chain := range c.Chains {
-		for _, denom := range chain.Denoms {
-			if denom.CoingeckoCurrency == currency {
-				return chain.Name, denom.GetName(), true
-			}
-		}
-	}
-
-	return "", "", false
-}
-
 func GetConfig(path string, filesystem fs.FS) (*Config, error) {
 	configBytes, err := filesystem.ReadFile(path)
 	if err != nil {
