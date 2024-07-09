@@ -2,13 +2,13 @@
 level = "debug"
 
 [[chains]]
-name = "sentinel"
-lcd-endpoint = "https://api.sentinel.quokkastake.io"
+name = "chain"
+lcd-endpoint = "https://example.com"
 denoms = [
-    { denom = "udvpn", display-denom = "dvpn", coingecko-currency = "sentinel" }
+    { denom = "uatom", display-denom = "atom", coingecko-currency = "cosmos" }
 ]
 
 [[chains.wallets]]
-address = "sent1nuf0cf3y787y0caqfrf6qhsaz2uhf4nph4yegw"
-group = "restake"
-name = "sentinel-restake"
+address = "address"
+group = "group"
+name = "name"

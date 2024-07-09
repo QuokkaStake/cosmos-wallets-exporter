@@ -1,0 +1,16 @@
+listen-address = "invalid"
+
+[log]
+level = "debug"
+
+[[chains]]
+name = "sentinel"
+lcd-endpoint = "https://api.sentinel.quokkastake.io"
+denoms = [
+    { denom = "udvpn", display-denom = "dvpn", coingecko-currency = "sentinel" }
+]
+
+[[chains.wallets]]
+address = "sent1nuf0cf3y787y0caqfrf6qhsaz2uhf4nph4yegw"
+group = "restake"
+name = "sentinel-restake"

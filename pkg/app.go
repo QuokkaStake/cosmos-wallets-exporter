@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/google/uuid"
@@ -27,8 +28,8 @@ type App struct {
 	Config   *config.Config
 	Logger   zerolog.Logger
 	Queriers []types.Querier
-
-	Tracer trace.Tracer
+	Server   *http.Server
+	Tracer   trace.Tracer
 }
 
 func NewApp(filesystem fs.FS, configPath string, version string) *App {
@@ -51,23 +52,37 @@ func NewApp(filesystem fs.FS, configPath string, version string) *App {
 		queriersPkg.NewUptimeQuerier(tracer),
 	}
 
+	server := &http.Server{Addr: appConfig.ListenAddress, Handler: nil}
+
 	return &App{
 		Config:   appConfig,
 		Logger:   log,
 		Queriers: queriers,
 		Tracer:   tracer,
+		Server:   server,
 	}
 }
 
 func (a *App) Start() {
 	otelHandler := otelhttp.NewHandler(http.HandlerFunc(a.Handler), "prometheus")
-	http.Handle("/metrics", otelHandler)
+	handler := http.NewServeMux()
+	handler.Handle("/metrics", otelHandler)
+	handler.HandleFunc("/healthcheck", a.Healthcheck)
+	a.Server.Handler = handler
 
 	a.Logger.Info().Str("addr", a.Config.ListenAddress).Msg("Listening")
-	err := http.ListenAndServe(a.Config.ListenAddress, nil)
+
+	err := a.Server.ListenAndServe()
 	if err != nil {
 		a.Logger.Panic().Err(err).Msg("Could not start application")
 	}
+}
+
+func (a *App) Stop() {
+	a.Logger.Info().Str("addr", a.Config.ListenAddress).Msg("Shutting down server...")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_ = a.Server.Shutdown(ctx)
 }
 
 func (a *App) Handler(w http.ResponseWriter, r *http.Request) {
@@ -118,4 +133,8 @@ func (a *App) Handler(w http.ResponseWriter, r *http.Request) {
 		Str("endpoint", "/metrics").
 		Float64("request-time", time.Since(requestStart).Seconds()).
 		Msg("Request processed")
+}
+
+func (a *App) Healthcheck(w http.ResponseWriter, r *http.Request) {
+	_, _ = w.Write([]byte("ok"))
 }
