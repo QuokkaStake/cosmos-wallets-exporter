@@ -1,0 +1,16 @@
+{
+  "balances": [
+    {
+      "denom": "uatom",
+      "amount": "123456"
+    },
+    {
+      "denom": "ustake",
+      "amount": "234567"
+    }
+  ],
+  "pagination": {
+    "next_key": null,
+    "total": "2"
+  }
+}

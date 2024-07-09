@@ -5,12 +5,13 @@ import (
 	"main/pkg/config"
 	"time"
 
+	"cosmossdk.io/math"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
 type Balance struct {
-	Denom  string `json:"denom"`
-	Amount string `json:"amount"`
+	Denom  string         `json:"denom"`
+	Amount math.LegacyDec `json:"amount"`
 }
 
 type Balances []Balance

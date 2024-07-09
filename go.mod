@@ -5,6 +5,7 @@ go 1.21.4
 toolchain go1.22.1
 
 require (
+	cosmossdk.io/math v1.3.0
 	github.com/BurntSushi/toml v1.1.0
 	github.com/creasty/defaults v1.7.0
 	github.com/google/uuid v1.6.0
@@ -41,6 +42,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.26.0 // indirect
 	go.opentelemetry.io/otel/metric v1.26.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.2.0 // indirect
+	golang.org/x/exp v0.0.0-20221205204356-47842c84f3db // indirect
 	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
