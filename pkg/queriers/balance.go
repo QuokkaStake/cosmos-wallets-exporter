@@ -5,7 +5,6 @@ import (
 	"main/pkg/config"
 	"main/pkg/tendermint"
 	"main/pkg/types"
-	"main/pkg/utils"
 	"sync"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -89,7 +88,7 @@ func (q *BalanceQuerier) GetMetrics(ctx context.Context) ([]prometheus.Collector
 
 				for _, balance := range balancesResponse.Balances {
 					denom := balance.Denom
-					amount := utils.StrToFloat64(balance.Amount)
+					amount := balance.Amount.MustFloat64()
 
 					denomInfo, found := chain.FindDenomByName(balance.Denom)
 					if found {

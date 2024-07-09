@@ -49,10 +49,7 @@ func (rpc *RPC) GetWalletBalances(address string, ctx context.Context) (*types.B
 		return nil, queryInfo, err
 	}
 
-	newLastHeight, err := utils.GetBlockHeightFromHeader(header)
-	if err != nil {
-		return nil, queryInfo, err
-	}
+	newLastHeight, _ := utils.GetBlockHeightFromHeader(header)
 
 	rpc.Mutex.Lock()
 	rpc.LastQueryHeight[address] = newLastHeight

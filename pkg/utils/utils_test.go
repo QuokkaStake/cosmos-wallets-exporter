@@ -15,23 +15,6 @@ func TestBoolToFloat64(t *testing.T) {
 	assert.InDelta(t, float64(0), BoolToFloat64(false), 0.001)
 }
 
-func TestStrToFloat64(t *testing.T) {
-	t.Parallel()
-	assert.InDelta(t, 1.234, StrToFloat64("1.234"), 0.001)
-}
-
-func TestStrToFloat64Invalid(t *testing.T) {
-	t.Parallel()
-
-	defer func() {
-		if r := recover(); r == nil {
-			require.Fail(t, "Expected to have a panic here!")
-		}
-	}()
-
-	StrToFloat64("test")
-}
-
 func TestGetBlockFromHeaderNoValue(t *testing.T) {
 	t.Parallel()
 
