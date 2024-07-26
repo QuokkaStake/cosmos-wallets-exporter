@@ -63,7 +63,7 @@ func TestBalanceQuerierOk(t *testing.T) {
 			Name:    "name",
 			Group:   "group",
 		}},
-		Denoms: []configPkg.DenomInfo{{Denom: "uatom", DisplayDenom: "atom", DenomCoefficient: 1000000}},
+		Denoms: []configPkg.DenomInfo{{Denom: "uatom", DisplayDenom: "atom", DenomExponent: 6}},
 	}}}
 
 	tracer := tracing.InitNoopTracer()

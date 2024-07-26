@@ -26,16 +26,16 @@ denoms = [
     # 1) denom - the base denom (like uatom for Cosmos Hub)
     # 2) display - denom - the denom name to display it (like atom for Cosmos Hub)
     # 3) coingecko-currency - a Coinecko API codename for a currency
-    # 4) denom-coefficient - the coefficient you need to multiply base denom to to get 1 token on Coingecko.
+    # 4) denom-exponent - the power of the coefficient you need to multiply base denom to get 1 token on Coingecko.
     # Example: on Cosmos network the base denom is uatom, 1 atom = 1_000_000 uatom
     # and 1 atom on Coingecko = $10, and your wallet has 10 atom, or 10_000_000 uatom.
     # Then you need to specify the following parameters:
     # coingecko-currency = "cosmos-hub"
     # base-denom = "uatom"
-    # denom-coefficient = 1000000
+    # denom-exponent = 6 # so the coefficient == 10^6 == 1_000_000
     # and after that, the /metrics endpoint will return your total balance as $100.
-    # Defaults to 1000000
-    { denom = "ubtsg", display-denom = "btsg", coingecko-currency = "bitsong", denom-coefficient = 1000000 }
+    # Defaults to 6
+    { denom = "ubtsg", display-denom = "btsg", coingecko-currency = "bitsong", denom-exponent = 6 }
 ]
 
 # Per-wallet config. You can specify multiple wallet configs per each chain.

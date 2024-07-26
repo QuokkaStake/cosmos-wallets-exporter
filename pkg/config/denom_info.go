@@ -3,7 +3,7 @@ package config
 type DenomInfo struct {
 	Denom             string `toml:"denom"`
 	DisplayDenom      string `toml:"display-denom"`
-	DenomCoefficient  int64  `default:"1000000"         toml:"denom-coefficient"`
+	DenomExponent     int    `default:"6"               toml:"denom-exponent"`
 	CoingeckoCurrency string `toml:"coingecko-currency"`
 }
 
